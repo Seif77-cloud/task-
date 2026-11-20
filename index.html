@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>نظام الطلاب</title>
+<style>
+body { background: #f2f2f2; font-family: Arial; direction: rtl; }
+.box { width: 500px; margin: 30px auto; background: white; padding: 20px; border-radius: 10px; }
+input { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
+button { background: #0d6efd; color: white; border: none; padding: 10px; width: 100%; cursor: pointer; }
+.card { border: 1px solid #ddd; padding: 10px; margin-top: 10px; border-radius: 5px; }
+.card button { background: red; width: auto; padding: 5px 15px; }
+#msgError { color: red; }
+</style>
+</head>
+<body>
+
+<div class="box">
+<h2>نظام إدارة الطلاب</h2>
+
+<label>الاسم</label>
+<input type="text" id="txtName" placeholder="اسم الطالب">
+
+<label>المادة 1</label>
+<input type="number" id="txtSub1" placeholder="0 - 100">
+
+<label>المادة 2</label>
+<input type="number" id="txtSub2" placeholder="0 - 100">
+
+<label>المادة 3</label>
+<input type="number" id="txtSub3" placeholder="0 - 100">
+
+<label>الحضور</label>
+<input type="number" id="txtAttend" placeholder="0 - 100">
+
+<p id="msgError"></p>
+
+<button id="btnSave">إضافة طالب</button>
+
+<hr>
+
+<h3>قائمة الطلاب - <span id="countBadge">0 طالب</span></h3>
+<div id="boxStudents"></div>
+
+</div>
+
+<script>
+const initialStudents = [
+  { name: "إنجي", s1: 88, s2: 92, s3: 85, attend: 95, fixed: true }
+];
+
+class Learner {
+  constructor(fullName, s1, s2, s3, attend, fixed = false) {
+    this.fullName = fullName;
+    this.s1 = s1;
+    this.s2 = s2;
+    this.s3 = s3;
+    this.attend = attend;
+    this.fixed = fixed;
+  }
+  calcAvg() {
+    return (this.s1 + this.s2 + this.s3) / 3;
+  }
+  calcStatus() {
+    if (this.calcAvg() >= 50 && this.attend >= 75) {
+      return "ناجح";
+    } else {
+      return "راسب";
+    }
+  }
+}
+
+let allLearners = initialStudents.map(d => new Learner(d.name, d.s1, d.s2, d.s3, d.attend, d.fixed));
+
+const txtName = document.getElementById("txtName");
+const txtSub1 = document.getElementById("txtSub1");
+const txtSub2 = document.getElementById("txtSub2");
+const txtSub3 = document.getElementById("txtSub3");
+const txtAttend = document.getElementById("txtAttend");
+const msgError = document.getElementById("msgError");
+const boxStudents = document.getElementById("boxStudents");
+const btnSave = document.getElementById("btnSave");
+const countBadge = document.getElementById("countBadge");
+
+function showStudents() {
+  boxStudents.innerHTML = "";
+  allLearners.forEach((st, i) => {
+    let div = document.createElement("div");
+    div.className = "card";
+    let deleteBtn = "";
+    if (!st.fixed) {
+      deleteBtn = "<button onclick='deleteStudent(" + i + ")'>حذف</button>";
+    }
+    div.innerHTML =
+      "<h4>" + st.fullName + "</h4>" +
+      "<p>المادة 1: " + st.s1 + " | المادة 2: " + st.s2 + " | المادة 3: " + st.s3 + "</p>" +
+      "<p>الحضور: " + st.attend + " | المتوسط: " + st.calcAvg().toFixed(1) + " | الحالة: " + st.calcStatus() + "</p>" +
+      deleteBtn;
+    boxStudents.appendChild(div);
+  });
+  countBadge.textContent = allLearners.length + " طالب";
+}
+
+function deleteStudent(index) {
+  if (allLearners[index].fixed) {
+    return;
+  }
+  allLearners.splice(index, 1);
+  showStudents();
+}
+
+btnSave.onclick = function () {
+  let name = txtName.value.trim();
+  let s1 = Number(txtSub1.value);
+  let s2 = Number(txtSub2.value);
+  let s3 = Number(txtSub3.value);
+  let attend = Number(txtAttend.value);
+
+  if (name == "") {
+    msgError.textContent = "اكتب اسم الطالب";
+    return;
+  }
+  if (s1 < 0 || s1 > 100 || s2 < 0 || s2 > 100 || s3 < 0 || s3 > 100) {
+    msgError.textContent = "الدرجات لازم تكون من 0 لـ 100";
+    return;
+  }
+  if (attend < 0 || attend > 100) {
+    msgError.textContent = "الحضور لازم يكون من 0 لـ 100";
+    return;
+  }
+
+  msgError.textContent = "";
+  let newStudent = new Learner(name, s1, s2, s3, attend, false);
+  allLearners.push(newStudent);
+  showStudents();
+
+  txtName.value = "";
+  txtSub1.value = "";
+  txtSub2.value = "";
+  txtSub3.value = "";
+  txtAttend.value = "";
+};
+
+showStudents();
+</script>
+</body>
+</html>
